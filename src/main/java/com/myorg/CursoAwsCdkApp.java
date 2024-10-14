@@ -15,6 +15,8 @@ public class CursoAwsCdkApp {
 
         ClusterStack clusterStack = new ClusterStack(app, "Cluster", vpcStack.getVpc());
         clusterStack.addDependency(vpcStack);
+        Service01Stack service01 = new Service01Stack(app, "Service01", clusterStack.getCluster());
+        service01.addDependency(clusterStack);
         //        new CursoAwsCdkStack(app, "CursoAwsCdkStack", StackProps.builder()
                 // If you don't specify 'env', this stack will be environment-agnostic.
                 // Account/Region-dependent features and context lookups will not work,
