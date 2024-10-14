@@ -1,14 +1,14 @@
 package com.myorg;
 
+import software.amazon.awscdk.Duration;
 import software.amazon.awscdk.RemovalPolicy;
 import software.amazon.awscdk.Stack;
 import software.amazon.awscdk.StackProps;
-import software.amazon.awscdk.services.ecs.AwsLogDriverProps;
-import software.amazon.awscdk.services.ecs.Cluster;
-import software.amazon.awscdk.services.ecs.ContainerImage;
-import software.amazon.awscdk.services.ecs.LogDriver;
+import software.amazon.awscdk.services.applicationautoscaling.EnableScalingProps;
+import software.amazon.awscdk.services.ecs.*;
 import software.amazon.awscdk.services.ecs.patterns.ApplicationLoadBalancedFargateService;
 import software.amazon.awscdk.services.ecs.patterns.ApplicationLoadBalancedTaskImageOptions;
+import software.amazon.awscdk.services.elasticloadbalancingv2.HealthCheck;
 import software.amazon.awscdk.services.logs.LogGroup;
 import software.constructs.Construct;
 // import software.amazon.awscdk.Duration;
@@ -35,7 +35,7 @@ public class Service01Stack extends Stack {
                                 .image(ContainerImage.fromRegistry("joanersoncosta/aws_project01:latest"))
                                 .containerPort(8080)
                                 .logDriver(LogDriver.awsLogs(AwsLogDriverProps.builder()
-                                        .logGroup(LogGroup.Builder.create(this, "servce01logGroup")
+                                        .logGroup(LogGroup.Builder.create(this, "Servce01logGroup")
                                                 .logGroupName("Service01")
                                                 .removalPolicy(RemovalPolicy.DESTROY)
                                                 .build())
@@ -44,6 +44,23 @@ public class Service01Stack extends Stack {
                                 .build())
                 .publicLoadBalancer(true)
             .build();
+
+        service01.getTargetGroup().configureHealthCheck(new HealthCheck.Builder()
+                .path("/actuator/health")
+                .port("8080")
+                .healthyHttpCodes("200")
+                .build());
+
+        ScalableTaskCount scalableTaskCount = service01.getService().autoScaleTaskCount(EnableScalingProps.builder()
+                        .minCapacity(2)
+                        .maxCapacity(4)
+                .build());
+
+        scalableTaskCount.scaleOnCpuUtilization("Service01AutoScaling", CpuUtilizationScalingProps.builder()
+                        .targetUtilizationPercent(50)
+                        .scaleInCooldown(Duration.seconds(60))
+                        .scaleOutCooldown(Duration.seconds(60))
+                .build());
         // The code that defines your stack goes here
 
         // example resource
