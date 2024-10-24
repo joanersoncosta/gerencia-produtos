@@ -29,7 +29,7 @@ public class RdsStack extends Stack {
                 .instanceIdentifier("aws-project01-db")
                 //Qual é o tipo da instancia
                 .engine(DatabaseInstanceEngine.mysql(MySqlInstanceEngineProps.builder()
-                         .version(MysqlEngineVersion.VER_5_7)
+                        .version(MysqlEngineVersion.VER_5_7)
                         .build()))
                 .vpc(vpc)
                 .credentials(Credentials.fromUsername("admin",
